@@ -25,6 +25,8 @@ import {
   ReloadInstructions,
 } from 'react-native/Libraries/NewAppScreen';
 
+import AppNavigator from './src/navigation/AppNavigator';
+
 type SectionProps = PropsWithChildren<{
   title: string;
 }>;
@@ -61,6 +63,8 @@ function App(): React.JSX.Element {
   const backgroundStyle = {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
   };
+  
+   return <AppNavigator />;
 
   return (
     <SafeAreaView style={backgroundStyle}>

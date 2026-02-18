@@ -33,6 +33,8 @@ local.properties
 .cxx/
 *.keystore
 !debug.keystore
+hs_err_pid*.log
+replay_pid*.log
 
 # node.js
 #
