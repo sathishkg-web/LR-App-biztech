@@ -1,6 +1,13 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as NavigationService from './navigationService';
 
 const BASE_URL = 'https://test-api.crgroups.in';
+
+// Handle 401 Unauthorized globally
+const handle401Error = async () => {
+  await AsyncStorage.removeItem('token');
+  NavigationService.navigate('Login');
+};
 
 // Custom fetch wrapper with automatic token injection (like axios interceptor)
 const fetchWithAuth = async (url, options = {}) => {
@@ -16,10 +23,17 @@ const fetchWithAuth = async (url, options = {}) => {
     headers.Authorization = `Bearer ${token}`;
   }
 
-  return fetch(url, {
+  const response = await fetch(url, {
     ...options,
     headers,
   });
+
+  // Handle 401 Unauthorized globally
+  if (response.status === 401) {
+    await handle401Error();
+  }
+
+  return response;
 };
 
 export const loginUser = async (data) => {

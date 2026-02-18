@@ -5,7 +5,10 @@ import {
   Text,
   StyleSheet,
   Alert,
+  TouchableOpacity,
+  BackHandler,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { fetchLineRunList } from '../services/api';
 import SearchBar from '../components/SearchBar';
 import FilterTabs from '../components/FilterTabs';
@@ -14,7 +17,7 @@ import Loader from '../components/Loader';
 
 const PAGE_SIZE = 10;
 
-const ListScreen = () => {
+const ListScreen = ({ navigation }) => {
   const [data, setData] = useState([]);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -22,6 +25,27 @@ const ListScreen = () => {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('All');
   const [hasMore, setHasMore] = useState(true);
+
+  const handleLogout = async () => {
+    try {
+      await AsyncStorage.removeItem('token');
+      navigation.navigate('Login');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
+
+  // Prevent hardware back button
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        return true; // Prevent default behavior (going back)
+      }
+    );
+
+    return () => backHandler.remove();
+  }, []);
 
   useEffect(() => {
     loadData(true);
@@ -73,6 +97,13 @@ const ListScreen = () => {
 
   return (
     <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Line Run List</Text>
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+          <Text style={styles.logoutText}>Logout</Text>
+        </TouchableOpacity>
+      </View>
+
       <SearchBar value={search} onChange={setSearch} />
       <FilterTabs selected={filter} onSelect={setFilter} />
 
@@ -89,7 +120,7 @@ const ListScreen = () => {
           )}
           onEndReached={() => {
             console.log('onEndReached');
-            if (!loadingMore && hasMore) loadData();
+            if (!loadingMore && hasMore && filteredData.length > 0) loadData();
           }}
           onEndReachedThreshold={0.5}
           ListFooterComponent={loadingMore && <Loader />}
@@ -111,5 +142,28 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
     backgroundColor: '#f9f9f9',
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+    paddingTop: 10,
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  logoutButton: {
+    backgroundColor: '#FF5252',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  logoutText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
   },
 });
